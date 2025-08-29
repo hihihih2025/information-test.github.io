@@ -1,0 +1,699 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>译者信息素养测评系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4A4BB8'
+                    }
+                }
+            },
+            darkMode: 'class'
+        }
+    </script>
+<script src="https://puc.poecdn.net/authenticated_preview_page/syncedState.bd4eeeb8e8e02052ee92.js"></script></head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
+    <div id="app" class="min-h-screen">
+        <!-- 开始界面 -->
+        <div id="startScreen" class="container mx-auto px-4 py-8 max-w-4xl">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-primary mb-4">译者信息素养测评系统</h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400">专业译者信息素养四维度评估</p>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold mb-4">测评说明</h2>
+                <div class="space-y-3 text-gray-700 dark:text-gray-300">
+                    <p><strong>测评模型：</strong>四维度评估（思维T、知识K、能力C、伦理E）</p>
+                    <p><strong>题目数量：</strong>共20题，每维度5题</p>
+                    <p><strong>计分规则：</strong>A=1分，B=2分，C=3分，D=4分，E=5分</p>
+                    <p><strong>总分范围：</strong>20-100分，单维度最高25分</p>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-8">
+                <h3 class="text-xl font-semibold mb-3">作答方式</h3>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+                    <div class="text-center p-3 bg-white dark:bg-gray-700 rounded">
+                        <div class="font-bold text-red-600">A</div>
+                        <div>几乎从不/缺乏</div>
+                    </div>
+                    <div class="text-center p-3 bg-white dark:bg-gray-700 rounded">
+                        <div class="font-bold text-orange-600">B</div>
+                        <div>偶尔</div>
+                    </div>
+                    <div class="text-center p-3 bg-white dark:bg-gray-700 rounded">
+                        <div class="font-bold text-yellow-600">C</div>
+                        <div>一般</div>
+                    </div>
+                    <div class="text-center p-3 bg-white dark:bg-gray-700 rounded">
+                        <div class="font-bold text-blue-600">D</div>
+                        <div>经常</div>
+                    </div>
+                    <div class="text-center p-3 bg-white dark:bg-gray-700 rounded">
+                        <div class="font-bold text-green-600">E</div>
+                        <div>总是且已系统化</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button id="startBtn" class="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
+                    开始测评
+                </button>
+            </div>
+        </div>
+
+        <!-- 测评界面 -->
+        <div id="testScreen" class="container mx-auto px-4 py-8 max-w-4xl hidden">
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-600 dark:text-gray-400">进度</span>
+                    <span id="progressText" class="text-sm text-gray-600 dark:text-gray-400">1/20</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div id="progressBar" class="bg-primary h-2 rounded-full transition-all duration-300" style="width: 5%"></div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+                <div class="mb-4">
+                    <span id="dimensionTag" class="inline-block bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">思维 T</span>
+                </div>
+                <h2 id="questionText" class="text-xl font-semibold mb-6">正在加载问题...</h2>
+                
+                <div id="optionsContainer" class="space-y-3">
+                    <!-- 选项将通过JavaScript生成 -->
+                </div>
+            </div>
+
+            <div class="flex justify-between">
+                <button id="prevBtn" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    上一题
+                </button>
+                <button id="nextBtn" class="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    下一题
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果界面 -->
+        <div id="resultScreen" class="container mx-auto px-4 py-8 max-w-6xl hidden">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-primary mb-2">测评结果</h1>
+                <p class="text-gray-600 dark:text-gray-400">您的译者信息素养评估报告</p>
+            </div>
+
+            <!-- 总分和等级 -->
+            <div class="bg-gradient-to-r from-primary to-purple-600 text-white rounded-lg p-8 mb-8 text-center">
+                <h2 class="text-2xl font-bold mb-2">总体评估</h2>
+                <div class="text-6xl font-bold mb-2" id="totalScore">0</div>
+                <div class="text-xl mb-2">总分 / 100</div>
+                <div class="text-2xl font-semibold" id="overallLevel">L1 初阶</div>
+            </div>
+
+            <!-- 四维度分析 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">维度得分</h3>
+                    <div id="dimensionScores" class="space-y-4">
+                        <!-- 维度得分将通过JavaScript生成 -->
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">信息素养雷达图</h3>
+                    <div class="relative" style="height: 300px;">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 优势与短板 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-green-800 dark:text-green-300 mb-4">关键优势</h3>
+                    <div id="strengths" class="space-y-2">
+                        <!-- 优势将通过JavaScript生成 -->
+                    </div>
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-red-800 dark:text-red-300 mb-4">关键短板</h3>
+                    <div id="weaknesses" class="space-y-2">
+                        <!-- 短板将通过JavaScript生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 改进建议 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-6 mb-8">
+                <h3 class="text-xl font-semibold mb-4">改进建议</h3>
+                <div id="improvements" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- 改进建议将通过JavaScript生成 -->
+                </div>
+            </div>
+
+            <!-- 学习路径 -->
+            <div id="learningPath" class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-8">
+                <h3 class="text-xl font-semibold text-blue-800 dark:text-blue-300 mb-4">学习路径</h3>
+                <div id="learningContent">
+                    <!-- 学习路径将通过JavaScript生成 -->
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button id="restartBtn" class="bg-primary hover:bg-primary-dark text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors mr-4">
+                    重新测评
+                </button>
+                <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg text-lg font-semibold transition-colors">
+                    导出报告
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 深色模式处理
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // 题库数据
+        const questionBank = {
+            T: [
+                "在接受翻译任务时，我会明确界定问题（目标受众、质量阈值、成本时间）并制定搜寻策略",
+                "我会对信息来源的主张进行证据回溯，验证其可信度",
+                "我会使用多个来源（标准库、术语库、权威文献、平行文本）进行比对验证",
+                "我会定期复盘翻译决策过程，更新个人翻译规范和标准",
+                "我能识别翻译中的敏感、法律、合规风险并设定明确的'红线'"
+            ],
+            K: [
+                "我了解不同信息源的分级（学术期刊、政府标准、媒体报道、百科全书等）",
+                "我理解CAT、MT、LLM工具的工作原理与边界，以及RAG技术和幻觉风险",
+                "我熟悉ISO/TC 37标准，会使用国家和行业术语库",
+                "我了解版权法、数据合规要求（隐私保护、开源许可、训练数据使用）",
+                "我具备质量评价常识（人工评价、QA清单、误差分类与局限性）"
+            ],
+            C: [
+                "我能熟练使用高级检索技巧（布尔逻辑、限定符、站内搜索、多语言跨检索）",
+                "我能有效筛选信息（评估可信度、时效性、相关度、可核验性）",
+                "我能系统管理术语和证据（字段化分类、版本控制）",
+                "我能进行有效的提示工程（角色、任务、约束、示例、格式设定及递进优化）",
+                "我能进行专业的译后编辑（轻度/全面PE、识别机器翻译易错点、保证一致性）"
+            ],
+            E: [
+                "我会透明披露AI/MT/CAT工具的使用情况及其对翻译的影响和分工",
+                "我会保持翻译过程的可追溯性（记录信息来源和版本变更）",
+                "我能识别并主动缓解翻译中的偏见和刻板印象",
+                "我遵循数据安全原则（最小必要原则、数据脱敏、避免向公共模型输入敏感信息）",
+                "我明确协作翻译中的署名、知识产权和质量责任边界"
+            ]
+        };
+
+        const dimensionNames = {
+            T: '思维',
+            K: '知识', 
+            C: '能力',
+            E: '伦理'
+        };
+
+        const levelMapping = {
+            L1: { min: 0, max: 39, name: 'L1 初阶', color: 'text-red-600' },
+            L2: { min: 40, max: 59, name: 'L2 入门', color: 'text-orange-600' },
+            L3: { min: 60, max: 79, name: 'L3 合格', color: 'text-yellow-600' },
+            L4: { min: 80, max: 89, name: 'L4 良好', color: 'text-blue-600' },
+            L5: { min: 90, max: 100, name: 'L5 卓越', color: 'text-green-600' }
+        };
+
+        // 应用状态
+        let currentQuestion = 0;
+        let answers = {};
+        let allQuestions = [];
+
+        // 初始化题目列表
+        function initQuestions() {
+            allQuestions = [];
+            Object.keys(questionBank).forEach(dimension => {
+                questionBank[dimension].forEach((question, index) => {
+                    allQuestions.push({
+                        dimension,
+                        text: question,
+                        id: `${dimension}_${index}`
+                    });
+                });
+            });
+        }
+
+        // 获取等级
+        function getLevel(score) {
+            for (const level of Object.values(levelMapping)) {
+                if (score >= level.min && score <= level.max) {
+                    return level;
+                }
+            }
+            return levelMapping.L1;
+        }
+
+        // 显示当前题目
+        function showQuestion() {
+            const question = allQuestions[currentQuestion];
+            
+            document.getElementById('dimensionTag').textContent = `${dimensionNames[question.dimension]} ${question.dimension}`;
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('progressText').textContent = `${currentQuestion + 1}/20`;
+            document.getElementById('progressBar').style.width = `${((currentQuestion + 1) / 20) * 100}%`;
+
+            // 生成选项
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+            
+            const options = [
+                { value: 1, label: 'A', desc: '几乎从不/缺乏', color: 'border-red-300 hover:border-red-500' },
+                { value: 2, label: 'B', desc: '偶尔', color: 'border-orange-300 hover:border-orange-500' },
+                { value: 3, label: 'C', desc: '一般', color: 'border-yellow-300 hover:border-yellow-500' },
+                { value: 4, label: 'D', desc: '经常', color: 'border-blue-300 hover:border-blue-500' },
+                { value: 5, label: 'E', desc: '总是且已系统化', color: 'border-green-300 hover:border-green-500' }
+            ];
+
+            options.forEach(option => {
+                const div = document.createElement('div');
+                div.className = `border-2 ${option.color} rounded-lg p-4 cursor-pointer transition-all hover:shadow-md`;
+                div.innerHTML = `
+                    <div class="flex items-center">
+                        <input type="radio" name="answer" value="${option.value}" id="option_${option.value}" class="mr-3 text-base">
+                        <label for="option_${option.value}" class="flex-1 cursor-pointer">
+                            <span class="font-bold text-lg mr-3">${option.label}</span>
+                            <span class="text-gray-700 dark:text-gray-300">${option.desc}</span>
+                        </label>
+                    </div>
+                `;
+                
+                div.addEventListener('click', () => {
+                    const radio = div.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    answers[question.id] = parseInt(option.value);
+                    updateNavigation();
+                });
+                
+                container.appendChild(div);
+            });
+
+            // 恢复之前的选择
+            if (answers[question.id]) {
+                const radio = container.querySelector(`input[value="${answers[question.id]}"]`);
+                if (radio) radio.checked = true;
+            }
+
+            updateNavigation();
+        }
+
+        // 更新导航按钮状态
+        function updateNavigation() {
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentQuestion === 19) {
+                nextBtn.textContent = '查看结果';
+                nextBtn.disabled = !answers[allQuestions[currentQuestion].id];
+            } else {
+                nextBtn.textContent = '下一题';
+                nextBtn.disabled = !answers[allQuestions[currentQuestion].id];
+            }
+        }
+
+        // 计算分数
+        function calculateScores() {
+            const scores = { T: 0, K: 0, C: 0, E: 0 };
+            const counts = { T: 0, K: 0, C: 0, E: 0 };
+
+            Object.keys(answers).forEach(questionId => {
+                const dimension = questionId.split('_')[0];
+                scores[dimension] += answers[questionId];
+                counts[dimension]++;
+            });
+
+            return {
+                total: Object.values(answers).reduce((sum, score) => sum + score, 0),
+                dimensions: scores
+            };
+        }
+
+        // 生成改进建议
+        function generateImprovements(scores) {
+            const dimensionAnalysis = {
+                T: {
+                    description: "思维维度涵盖问题界定、证据意识、多源求证、反思复盘和风险前瞻能力",
+                    improvements: [
+                        "目标：建立系统性的问题界定框架 → 行动：制定翻译任务清单模板 → 工具：使用项目管理工具记录 → 验证：每个项目完成后检查是否遗漏关键信息",
+                        "目标：增强证据意识 → 行动：建立信息源验证习惯 → 工具：使用fact-checking工具和数据库 → 验证：追踪引用来源的准确率",
+                        "目标：建立多源求证机制 → 行动：为每个专业领域建立权威资源库 → 工具：术语管理系统 → 验证：比较不同来源的一致性",
+                        "目标：养成反思复盘习惯 → 行动：每月进行翻译决策回顾 → 工具：翻译日志和错误分析表 → 验证：个人规范的更新频率和质量提升",
+                        "目标：强化风险识别能力 → 行动：建立风险评估清单 → 工具：合规检查工具、法律咨询平台 → 验证：风险预警准确率"
+                    ]
+                },
+                K: {
+                    description: "知识维度评估信息源分级、工具原理、术语规范、版权合规和质量评价的理论基础",
+                    improvements: [
+                        "目标：掌握信息源分级体系 → 行动：学习学术评价标准 → 工具：期刊影响因子查询、政府官网导航 → 验证：能准确识别不同等级信息源",
+                        "目标：深入理解AI工具原理 → 行动：参加相关技术培训 → 工具：在线课程、技术文档 → 验证：能解释工具局限性和适用场景",
+                        "目标：熟练使用术语标准 → 行动：注册并使用国际标准数据库 → 工具：ISO在线平台、国家标准网 → 验证：术语使用的规范性和一致性",
+                        "目标：建立合规意识 → 行动：学习相关法律法规 → 工具：法律数据库、合规检查清单 → 验证：项目中的合规风险评估记录",
+                        "目标：掌握质量评价方法 → 行动：学习评价标准和框架 → 工具：QA工具、评价量表 → 验证：质量评估的客观性和准确性"
+                    ]
+                },
+                C: {
+                    description: "能力维度关注检索、筛选、管理、提示工程和译后编辑的实操技能",
+                    improvements: [
+                        "目标：提升高级检索技能 → 行动：系统学习搜索语法 → 工具：各大搜索引擎、学术数据库 → 验证：搜索效率和结果相关性",
+                        "目标：建立信息筛选标准 → 行动：制定评估框架 → 工具：信息评估清单 → 验证：筛选准确率和时间效率",
+                        "目标：优化信息管理系统 → 行动：建立数字化工作流 → 工具：知识管理软件、术语数据库 → 验证：信息检索速度和准确性",
+                        "目标：掌握提示工程技巧 → 行动：练习prompt设计 → 工具：AI工具和测试平台 → 验证：输出质量和任务完成度",
+                        "目标：提升译后编辑水平 → 行动：练习PE技巧和错误识别 → 工具：CAT工具、质量检查插件 → 验证：编辑效率和质量提升"
+                    ]
+                },
+                E: {
+                    description: "伦理维度强调透明披露、可追溯性、公平偏见、数据安全和权责边界",
+                    improvements: [
+                        "目标：建立透明度标准 → 行动：制定工具使用披露模板 → 工具：项目文档系统 → 验证：客户和同行的反馈",
+                        "目标：确保过程可追溯 → 行动：建立完整的工作记录 → 工具：版本控制系统、工作日志 → 验证：能完整重现翻译过程",
+                        "目标：提升偏见识别能力 → 行动：学习多元化和包容性原则 → 工具：偏见检查清单、多样化参考资源 → 验证：翻译中性别、文化敏感度",
+                        "目标：强化数据安全意识 → 行动：建立数据处理规范 → 工具：加密工具、脱敏软件 → 验证：安全事件零记录",
+                        "目标：明确权责边界 → 行动：制定协作规范和署名标准 → 工具：合同模板、权责清单 → 验证：争议解决效率"
+                    ]
+                }
+            };
+
+            return dimensionAnalysis;
+        }
+
+        // 生成学习路径
+        function generateLearningPath(scores, totalScore) {
+            if (totalScore >= 60) return null;
+
+            const weakDimensions = Object.keys(scores.dimensions)
+                .filter(dim => scores.dimensions[dim] < 15)
+                .sort((a, b) => scores.dimensions[a] - scores.dimensions[b]);
+
+            const weeks = [
+                {
+                    title: "第1-2周：基础诊断与目标设定",
+                    tasks: [
+                        "完成个人能力自评和差距分析",
+                        "制定个性化提升计划",
+                        "建立学习记录系统"
+                    ],
+                    resources: "自评工具、目标设定模板、学习管理平台",
+                    checkpoint: "完成基线评估和目标设定文档"
+                },
+                {
+                    title: "第3-4周：信息素养基础强化",
+                    tasks: [
+                        "学习信息检索基础技能",
+                        "掌握信息质量评估方法",
+                        "建立个人资源库"
+                    ],
+                    resources: "检索技能教程、评估框架、资源管理工具",
+                    checkpoint: "通过信息检索技能测试"
+                },
+                {
+                    title: "第5-6周：专业工具与技术",
+                    tasks: [
+                        "深入学习CAT/MT/AI工具",
+                        "实践提示工程技巧",
+                        "建立工具使用规范"
+                    ],
+                    resources: "工具教程、实践平台、最佳实践指南",
+                    checkpoint: "完成工具综合应用项目"
+                },
+                {
+                    title: "第7-8周：伦理与质量保障",
+                    tasks: [
+                        "学习翻译伦理标准",
+                        "建立质量控制流程",
+                        "实践透明度和可追溯性"
+                    ],
+                    resources: "伦理指南、质量标准、流程模板",
+                    checkpoint: "通过综合评估和同行评议"
+                }
+            ];
+
+            return weeks;
+        }
+
+        // 显示结果
+        function showResults() {
+            const scores = calculateScores();
+            const totalScore = scores.total;
+            const overallLevel = getLevel(totalScore);
+
+            // 显示总分和等级
+            document.getElementById('totalScore').textContent = totalScore;
+            document.getElementById('overallLevel').textContent = overallLevel.name;
+            document.getElementById('overallLevel').className = `text-2xl font-semibold ${overallLevel.color}`;
+
+            // 显示维度得分
+            const dimensionScoresContainer = document.getElementById('dimensionScores');
+            dimensionScoresContainer.innerHTML = '';
+
+            const radarData = [];
+            const radarLabels = [];
+
+            Object.keys(scores.dimensions).forEach(dim => {
+                const score = scores.dimensions[dim];
+                const percentage = (score / 25) * 100;
+                const level = getLevel(percentage);
+
+                radarData.push(percentage);
+                radarLabels.push(dimensionNames[dim]);
+
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600';
+                div.innerHTML = `
+                    <span class="font-medium">${dimensionNames[dim]} (${dim})</span>
+                    <div class="text-right">
+                        <span class="font-bold">${score}/25</span>
+                        <span class="text-sm ${level.color} ml-2">${level.name}</span>
+                    </div>
+                `;
+                dimensionScoresContainer.appendChild(div);
+            });
+
+            // 绘制雷达图
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: radarLabels,
+                    datasets: [{
+                        label: '能力水平 (%)',
+                        data: radarData,
+                        borderColor: '#5D5CDE',
+                        backgroundColor: 'rgba(93, 92, 222, 0.2)',
+                        pointBackgroundColor: '#5D5CDE',
+                        pointBorderColor: '#5D5CDE',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // 分析优势和短板
+            const dimensionScores = Object.entries(scores.dimensions)
+                .map(([dim, score]) => ({ dimension: dim, score, percentage: (score / 25) * 100 }))
+                .sort((a, b) => b.percentage - a.percentage);
+
+            const strengths = dimensionScores.slice(0, 2);
+            const weaknesses = dimensionScores.slice(-2);
+
+            // 显示优势
+            const strengthsContainer = document.getElementById('strengths');
+            strengthsContainer.innerHTML = '';
+            strengths.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center text-green-700 dark:text-green-300';
+                div.innerHTML = `
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    ${dimensionNames[item.dimension]}维度表现优秀 (${item.score}/25分)
+                `;
+                strengthsContainer.appendChild(div);
+            });
+
+            // 显示短板
+            const weaknessesContainer = document.getElementById('weaknesses');
+            weaknessesContainer.innerHTML = '';
+            weaknesses.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center text-red-700 dark:text-red-300';
+                div.innerHTML = `
+                    <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                    ${dimensionNames[item.dimension]}维度需要重点提升 (${item.score}/25分)
+                `;
+                weaknessesContainer.appendChild(div);
+            });
+
+            // 显示改进建议
+            const improvements = generateImprovements(scores);
+            const improvementsContainer = document.getElementById('improvements');
+            improvementsContainer.innerHTML = '';
+
+            Object.keys(improvements).forEach(dim => {
+                const dimData = improvements[dim];
+                const dimScore = scores.dimensions[dim];
+                const dimPercentage = (dimScore / 25) * 100;
+                
+                const div = document.createElement('div');
+                div.className = 'border border-gray-200 dark:border-gray-600 rounded-lg p-4';
+                div.innerHTML = `
+                    <h4 class="font-semibold text-primary mb-2">${dimensionNames[dim]}维度提升 (${dimScore}/25分)</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${dimData.description}</p>
+                    <div class="space-y-2">
+                        ${dimData.improvements.slice(0, 3).map(item => `
+                            <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 rounded p-2">
+                                ${item}
+                            </div>
+                        `).join('')}
+                        ${dimData.improvements.length > 3 ? `
+                            <details class="text-sm">
+                                <summary class="cursor-pointer text-primary hover:text-primary-dark">查看更多建议...</summary>
+                                <div class="mt-2 space-y-2">
+                                    ${dimData.improvements.slice(3).map(item => `
+                                        <div class="text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 rounded p-2">
+                                            ${item}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </details>
+                        ` : ''}
+                    </div>
+                `;
+                improvementsContainer.appendChild(div);
+            });
+
+            // 显示学习路径
+            const learningPath = generateLearningPath(scores, totalScore);
+            const learningPathContainer = document.getElementById('learningPath');
+            
+            if (learningPath) {
+                const learningContent = document.getElementById('learningContent');
+                learningContent.innerHTML = `
+                    <div class="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                        <p class="text-yellow-800 dark:text-yellow-300">
+                            <strong>注意：</strong>检测到您的某些维度得分低于60%，建议按照以下4-8周学习路径进行系统提升。
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        ${learningPath.map(week => `
+                            <div class="border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">${week.title}</h4>
+                                <div class="text-sm space-y-2">
+                                    <div>
+                                        <strong>任务：</strong>
+                                        <ul class="list-disc list-inside ml-2 text-gray-600 dark:text-gray-400">
+                                            ${week.tasks.map(task => `<li>${task}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                    <div><strong>资源：</strong> <span class="text-gray-600 dark:text-gray-400">${week.resources}</span></div>
+                                    <div><strong>检查点：</strong> <span class="text-gray-600 dark:text-gray-400">${week.checkpoint}</span></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                learningPathContainer.style.display = 'none';
+            }
+
+            // 切换到结果界面
+            document.getElementById('testScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+        }
+
+        // 导出报告
+        function exportReport() {
+            const scores = calculateScores();
+            const reportData = {
+                timestamp: new Date().toISOString(),
+                totalScore: scores.total,
+                overallLevel: getLevel(scores.total).name,
+                dimensionScores: scores.dimensions,
+                answers: answers
+            };
+
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `translator-assessment-${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 事件监听器
+        document.getElementById('startBtn').addEventListener('click', () => {
+            initQuestions();
+            currentQuestion = 0;
+            answers = {};
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('testScreen').classList.remove('hidden');
+            showQuestion();
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion();
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentQuestion < 19) {
+                currentQuestion++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        });
+
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            currentQuestion = 0;
+            answers = {};
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', exportReport);
+    </script>
+
+
+</body></html>
